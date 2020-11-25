@@ -1,7 +1,9 @@
 package de.fh.stud.p1;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 import de.fh.pacman.enums.PacmanTileType;
 
@@ -35,15 +37,21 @@ public class WorldHelper {
 	}
 
 	public static void printWorld(PacmanTileType[][] w, Position marker) {
+		String[] rows = new String[Stream.of(w).mapToInt(x -> x.length).max().orElse(0)];
+		Arrays.fill(rows, "");
+
 		for (int y = 0; y < w.length; y++) {
-			for (int x = 0; x < w.length; x++) {
+			for (int x = 0; x < w[y].length; x++) {
 				if (marker != null && marker.x == x && marker.y == y) {
-					System.out.print('M');
+					rows[x] += 'M';
 				} else {
-					System.out.print(getSymbol(w[x][y]));
+					rows[x] += getSymbol(w[y][x]);
 				}
 			}
-			System.out.println();
+		}
+
+		for (String row : rows) {
+			System.out.println(row);
 		}
 	}
 
@@ -51,9 +59,9 @@ public class WorldHelper {
 		int count = 0;
 
 		for (int y = 0; y < w.length; y++) {
-			for (int x = 0; x < w.length; x++) {
+			for (int x = 0; x < w[y].length; x++) {
 
-				PacmanTileType t = w[x][y];
+				PacmanTileType t = w[y][x];
 				if (types.contains(t)) {
 					count++;
 				}
