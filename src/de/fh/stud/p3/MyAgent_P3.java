@@ -71,6 +71,10 @@ public class MyAgent_P3 extends PacmanAgent_2021 {
 		 */
 		this.view = percept.getView();
 
+		if (actionEffect == PacmanActionEffect.BUMPED_INTO_WALL) {
+			throw new IllegalStateException("Bumpled into wall. Out of sync?");
+		}
+
 		/*
 		 * Die möglichen zurückzugebenden PacmanActions sind: PacmanAction.GO_EAST
 		 * PacmanAction.GO_NORTH PacmanAction.GO_SOUTH PacmanAction.GO_WEST
@@ -82,7 +86,11 @@ public class MyAgent_P3 extends PacmanAgent_2021 {
 
 			Suche suche = new Suche(view, new Position(this.percept.getPosX(), this.percept.getPosY()));
 //			loesungsKnoten = suche.tiefensuche();
-			loesungsKnoten = suche.breitensuche();
+//			loesungsKnoten = suche.breitensuche();
+//			loesungsKnoten = suche.greedysuche();
+//			loesungsKnoten = suche.kostensuche();
+			loesungsKnoten = suche.aStern();
+			
 
 			actions = new LinkedList<PacmanAction>(loesungsKnoten.getResultedByActions());
 		}
@@ -95,6 +103,7 @@ public class MyAgent_P3 extends PacmanAgent_2021 {
 
 		} else {
 			// Ansonsten wurde keine Lösung gefunden und der Pacman kann das Spiel aufgeben
+			System.out.println("Give up: Quit!");
 			nextAction = PacmanAction.QUIT_GAME;
 		}
 

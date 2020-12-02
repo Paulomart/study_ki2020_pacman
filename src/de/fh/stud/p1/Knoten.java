@@ -3,7 +3,6 @@ package de.fh.stud.p1;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -55,7 +54,9 @@ public class Knoten implements Node {
 			newDotsEaten = this.dotsEaten + 1;
 		}
 
-		List<PacmanAction> newResultedByActions = new LinkedList<PacmanAction>(this.resultedByActions);
+		
+		List<PacmanAction> newResultedByActions = new ArrayList<PacmanAction>(this.resultedByActions.size() + 1); /// new LinkedList<PacmanAction>(this.resultedByActions);
+		newResultedByActions.addAll(resultedByActions);
 		newResultedByActions.add(action);
 
 		PacmanTileType[][] modifiedWorld = WorldHelper.withTileType(world, newPosition, PacmanTileType.EMPTY);
@@ -85,6 +86,10 @@ public class Knoten implements Node {
 
 	public List<PacmanAction> getResultedByActions() {
 		return resultedByActions;
+	}
+
+	public int getCostToReach() {
+		return this.getResultedByActions().size();
 	}
 
 	@Override
