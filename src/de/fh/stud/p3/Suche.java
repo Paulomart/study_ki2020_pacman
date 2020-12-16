@@ -1,14 +1,9 @@
 package de.fh.stud.p3;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,165 +38,140 @@ public class Suche {
 	}
 
 	public Knoten breitensuche() {
-		return closedListSerach(this.initialKnoten, this::noPointsLeft, Suche::BREADTH_FIRST);
+		return new BREADTH_FIRST<Knoten>().closedListSerach(initialKnoten, this::noPointsLeft);
 	}
 
 	public Knoten tiefensuche() {
-		return closedListSerach(this.initialKnoten, this::noPointsLeft, Suche::DEPTH_FIRST);
+		return new DEPTH_FIRST<Knoten>().closedListSerach(this.initialKnoten, this::noPointsLeft);
 	}
 
 	public Knoten kostensuche() {
-		return closedListSerach(this.initialKnoten, this::noPointsLeft, Suche.make_UNIFORM_COST(this.costToReach));
+		return new UNIFORM_COST<Knoten>(this.costToReach).closedListSerach(this.initialKnoten, this::noPointsLeft);
 	}
 
 	public Knoten greedysuche() {
-		return closedListSerach(this.initialKnoten, this::noPointsLeft, Suche.make_GREEDY(this.dotsLeft));
+		return new GREEDY<Knoten>(this.dotsLeft).closedListSerach(this.initialKnoten, this::noPointsLeft);
 	}
 
 	public Knoten aStern() {
-		return closedListSerach(this.initialKnoten, this::noPointsLeft,
-				Suche.make_A_STAR(this.costToReach, this.dotsLeft));
+		return new A_STAR<Knoten>(this.costToReach, this.dotsLeft).closedListSerach(this.initialKnoten,
+				this::noPointsLeft);
 	}
 
-	public static <T extends Node> LinkedList<T> BREADTH_FIRST(Stream<T> nodes, /* LinkedList */ Queue<T> openList) {
-		if (openList == null) {
-			return new LinkedList<T>(nodes.collect(Collectors.toList()));
+	class BREADTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
+
+		@Override
+		public LinkedList<TNode> create(Stream<TNode> initialNodes) {
+			return new LinkedList<>(initialNodes.collect(Collectors.toList()));
 		}
 
-		LinkedList<T> list = (LinkedList<T>) openList;
-		nodes.forEach(x -> list.add(x));
+		@Override
+		public void insert(LinkedList<TNode> ref, Stream<TNode> nodes) {
+			nodes.forEach(x -> ref.add(x));
 
-		return list;
-	}
-
-	public static <T extends Node> LinkedList<T> DEPTH_FIRST(Stream<T> nodes, /* LinkedList */ Queue<T> openList) {
-		if (openList == null) {
-			return new LinkedList<T>(nodes.collect(Collectors.toList()));
 		}
 
-		LinkedList<T> list = (LinkedList<T>) openList;
-		nodes.forEach(x -> list.add(0, x));
-
-		return list;
 	}
 
-	public static <T extends Node> BiFunction<Stream<T>, Queue<T>, Queue<T>> make_UNIFORM_COST(
-			ToIntFunction<T> costFunction) {
-		return (Stream<T> nodes, Queue<T> openList) -> {
-			if (openList == null) {
-				PriorityQueue<T> queue = new PriorityQueue<T>((a, b) -> {
-					return costFunction.applyAsInt(a) - costFunction.applyAsInt(b);
-				});
+	class DEPTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
 
-				queue.addAll(nodes.collect(Collectors.toList()));
-				return queue;
-			}
+		@Override
+		public LinkedList<TNode> create(Stream<TNode> initialNodes) {
+			return new LinkedList<>(initialNodes.collect(Collectors.toList()));
+		}
 
-			PriorityQueue<T> queue = (PriorityQueue<T>) openList;
-			nodes.forEach(x -> queue.add(x));
+		@Override
+		public void insert(LinkedList<TNode> ref, Stream<TNode> nodes) {
+			nodes.forEach(x -> ref.add(0, x));
 
-			return queue;
-		};
+		}
+
 	}
 
-	public static <T extends Node> BiFunction<Stream<T>, Queue<T>, Queue<T>> make_GREEDY(ToIntFunction<T> heuristic) {
-		return (Stream<T> nodes, Queue<T> openList) -> {
-			if (openList == null) {
-				PriorityQueue<T> queue = new PriorityQueue<T>((a, b) -> {
-					return heuristic.applyAsInt(a) - heuristic.applyAsInt(b);
-				});
+	class UNIFORM_COST<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
 
-				queue.addAll(nodes.collect(Collectors.toList()));
-				return queue;
-			}
+		private final ToIntFunction<TNode> costFunction;
 
-			PriorityQueue<T> queue = (PriorityQueue<T>) openList;
-			nodes.forEach(x -> queue.add(x));
+		public UNIFORM_COST(ToIntFunction<TNode> costFunction) {
+			this.costFunction = costFunction;
+		}
 
+		@Override
+		protected Queue<TNode> create(Stream<TNode> initialNodes) {
+			PriorityQueue<TNode> queue = new PriorityQueue<>((a, b) -> {
+				return costFunction.applyAsInt(a) - costFunction.applyAsInt(b);
+			});
+
+			queue.addAll(initialNodes.collect(Collectors.toList()));
 			return queue;
-		};
+		}
+
+		@Override
+		protected void insert(Queue<TNode> ref, Stream<TNode> nodes) {
+			nodes.forEach(x -> ref.add(x));
+		}
+
 	}
 
-	public static <T extends Node> BiFunction<Stream<T>, Queue<T>, Queue<T>> make_A_STAR(ToIntFunction<T> costFunction,
-			ToIntFunction<T> heuristic) {
-		return (Stream<T> nodes, Queue<T> openList) -> {
-			if (openList == null) {
-				PriorityQueue<T> queue = new PriorityQueue<T>((a, b) -> {
-					int projectedCostA = costFunction.applyAsInt(a) + heuristic.applyAsInt(a);
-					int projectedCostB = costFunction.applyAsInt(b) + heuristic.applyAsInt(b);
+	class GREEDY<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
 
-					return projectedCostA - projectedCostB;
-				});
+		private final ToIntFunction<TNode> heuristic;
 
-				queue.addAll(nodes.collect(Collectors.toList()));
-				return queue;
-			}
+		public GREEDY(ToIntFunction<TNode> heuristic) {
+			this.heuristic = heuristic;
+		}
 
-			PriorityQueue<T> queue = (PriorityQueue<T>) openList;
-			nodes.forEach(x -> queue.add(x));
+		@Override
+		protected Queue<TNode> create(Stream<TNode> initialNodes) {
+			PriorityQueue<TNode> queue = new PriorityQueue<>((a, b) -> {
+				return heuristic.applyAsInt(a) - heuristic.applyAsInt(b);
+			});
 
+			queue.addAll(initialNodes.collect(Collectors.toList()));
 			return queue;
-		};
+		}
+
+		@Override
+		protected void insert(Queue<TNode> ref, Stream<TNode> nodes) {
+			nodes.forEach(x -> ref.add(x));
+		}
+
+	}
+
+	class A_STAR<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
+
+		private final ToIntFunction<TNode> costFunction;
+		private final ToIntFunction<TNode> heuristic;
+
+		public A_STAR(ToIntFunction<TNode> costFunction, ToIntFunction<TNode> heuristic) {
+			this.costFunction = costFunction;
+			this.heuristic = heuristic;
+		}
+
+		@Override
+		protected Queue<TNode> create(Stream<TNode> initialNodes) {
+			PriorityQueue<TNode> queue = new PriorityQueue<>((a, b) -> {
+				int projectedCostA = costFunction.applyAsInt(a) + heuristic.applyAsInt(a);
+				int projectedCostB = costFunction.applyAsInt(b) + heuristic.applyAsInt(b);
+
+				return projectedCostA - projectedCostB;
+			});
+
+			queue.addAll(initialNodes.collect(Collectors.toList()));
+			return queue;
+		}
+
+		@Override
+		protected void insert(Queue<TNode> ref, Stream<TNode> nodes) {
+			nodes.forEach(x -> ref.add(x));
+		}
+
 	}
 
 	public static interface Node {
 
 		Stream<? extends Node> expand();
 
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T extends Node, OpenListType extends Queue<T>> T closedListSerach(T initialNode,
-			Predicate<T> goalTest, BiFunction<Stream<T>, OpenListType, OpenListType> insert) {
-
-		long start = System.currentTimeMillis();
-		long lastMessage = System.currentTimeMillis();
-
-		System.out.println("    time     #open   #closed   used mb   mem%");
-
-		Set<T> closedList = new HashSet<T>(10_000_000, 0.9F);
-		OpenListType openList = null;
-
-		openList = insert.apply(Stream.of(initialNode), openList);
-
-		BiConsumer<OpenListType, Set<T>> printStatus = (pOpenList, pClosedList) -> {
-			Runtime rt = Runtime.getRuntime();
-
-			long maxMB = rt.maxMemory() / 1024 / 1024;
-			long usedMB = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
-			long percent = (long) (((double) usedMB / (double) maxMB) * 100D);
-
-			String log = String.format("%7ds   %7d   %7d   %7d   %3d%%", (System.currentTimeMillis() - start) / 1000,
-					pOpenList.size(), pClosedList.size(), usedMB, percent);
-			System.out.println(log);
-		};
-		
-		while (!openList.isEmpty()) {
-
-			long diff = System.currentTimeMillis() - lastMessage;
-			if (diff >= 1000) {
-				printStatus.accept(openList, closedList);
-				lastMessage = System.currentTimeMillis();
-			}
-
-			T node = openList.remove();
-
-			if (goalTest.test(node)) {
-				printStatus.accept(openList, closedList);
-				System.out.println("Fininshed: "  + openList.size() + "\t" + closedList.size() + "\t" + ((Knoten) node).getResultedByActions().size());
-				return node;
-			}
-
-			boolean nodeWasSeenBefore = !closedList.add(node);
-			if (nodeWasSeenBefore) {
-				continue;
-			}
-
-			insert.apply((Stream<T>) node.expand().filter(x -> !closedList.contains(x)), openList);
-		}
-
-		// return failure
-		return null;
 	}
 
 }
