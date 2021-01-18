@@ -20,13 +20,12 @@ public class MDP {
 	public WorldField[][] compute() {
 		WorldField[][] w = convertWorld(this.w);
 
-		WorldHelper.printWorld(w);
-
-		for (int i = 0; i < 50; i++) {
-			w = next(w, 0.1F);
-			WorldHelper.printWorld(w);
+		for (int i = 0; i < 1000; i++) {
+			w = next(w);
 
 		}
+
+		WorldHelper.printWorld(w);
 
 		return w;
 	}
@@ -38,9 +37,9 @@ public class MDP {
 		case EMPTY:
 			return 0;
 		case GHOST:
-			return -1;
+			return -200;
 		case GHOST_AND_DOT:
-			return -1;
+			return -180;
 		case PACMAN:
 			return 0; // ?
 		case WALL:
@@ -62,16 +61,26 @@ public class MDP {
 
 		WorldField currentType = WorldHelper.getTileType(w, pos);
 
+//		if (moveTargetType.tileType == PacmanTileType.GHOST || currentType.tileType == PacmanTileType.GHOST) {
+//			return rate(PacmanTileType.GHOST);
+//		}
+//
+//		if (moveTargetType.tileType == PacmanTileType.GHOST_AND_DOT
+//				|| currentType.tileType == PacmanTileType.GHOST_AND_DOT) {
+//			return rate(PacmanTileType.GHOST_AND_DOT);
+//		}
+//
 		if (moveTargetType.tileType == PacmanTileType.WALL || currentType.tileType == PacmanTileType.WALL) {
-			return 0;
-		} 
-		
-		if (moveTargetType.tileType == PacmanTileType.DOT || currentType.tileType == PacmanTileType.DOT) {
-			return 1;
+			return rate(PacmanTileType.WALL);
 		}
 
+//		if (moveTargetType.tileType == PacmanTileType.DOT || currentType.tileType == PacmanTileType.DOT) {
+//			return rate(PacmanTileType.DOT);
+//		}
 
-		return moveTargetType.qValue * 0.9F;
+//		return (moveTargetType.qValue * 0.6F + rate(currentType.tileType) * 0.2F + rate(moveTargetType.tileType) * 0.2F)
+//				* 0.9F; // + rate(moveTargetType.tileType);
+		return moveTargetType.qValue * 0.9F + rate(moveTargetType.tileType);
 	}
 
 	public WorldField[][] convertWorld(PacmanTileType[][] w) {
@@ -108,7 +117,7 @@ public class MDP {
 
 	}
 
-	public WorldField[][] next(WorldField[][] w, float gamma) {
+	public WorldField[][] next(WorldField[][] w) {
 		WorldField[][] newWorld = duplicate(w);
 
 		for (int x = 0; x < w.length; x++) {
@@ -131,7 +140,7 @@ public class MDP {
 				}
 
 				QActionValue v = values.stream().max((a, b) -> Float.compare(a.qValue, b.qValue)).get();
-				
+
 				newWorld[x][y] = new WorldField(v.qValue, v.qAction, t.tileType);
 
 			}
