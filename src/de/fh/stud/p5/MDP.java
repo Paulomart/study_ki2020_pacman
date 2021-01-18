@@ -58,20 +58,20 @@ public class MDP {
 			return 0;
 		}
 
-		WorldField at = WorldHelper.getTileType(w, newPos);
+		WorldField moveTargetType = WorldHelper.getTileType(w, newPos);
 
-		WorldField old = WorldHelper.getTileType(w, pos);
-//
-//		if (at.tileType == PacmanTileType.WALL || old.tileType == PacmanTileType.WALL) {
-//			return 0;
-//		} 
-//		
-//		if (at.tileType == PacmanTileType.DOT || old.tileType == PacmanTileType.DOT) {
-//			return 1;
-//		}
+		WorldField currentType = WorldHelper.getTileType(w, pos);
+
+		if (moveTargetType.tileType == PacmanTileType.WALL || currentType.tileType == PacmanTileType.WALL) {
+			return 0;
+		} 
+		
+		if (moveTargetType.tileType == PacmanTileType.DOT || currentType.tileType == PacmanTileType.DOT) {
+			return 1;
+		}
 
 
-		return at.qValue * 0.9F;
+		return moveTargetType.qValue * 0.9F;
 	}
 
 	public WorldField[][] convertWorld(PacmanTileType[][] w) {
@@ -131,16 +131,8 @@ public class MDP {
 				}
 
 				QActionValue v = values.stream().max((a, b) -> Float.compare(a.qValue, b.qValue)).get();
-
-	
-				if (t.tileType == PacmanTileType.DOT || t.tileType == PacmanTileType.WALL) {
-					newWorld[x][y] = new WorldField(rate(t.tileType), v.qAction, t.tileType);
-
-				} else
-				{
-					
-					newWorld[x][y] = new WorldField(v.qValue, v.qAction, t.tileType);
-				}
+				
+				newWorld[x][y] = new WorldField(v.qValue, v.qAction, t.tileType);
 
 			}
 		}
