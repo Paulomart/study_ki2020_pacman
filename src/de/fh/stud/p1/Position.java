@@ -14,7 +14,7 @@ public class Position {
 
 	public Position mutate(PacmanAction action) {
 		/*
-		 *            ^ (-y/south)
+		 *            ^ (-y/north)
 		 *            |
 		 *            |
 		 *            |
@@ -23,7 +23,7 @@ public class Position {
 		 *  (-x/west) |        (+x/east)
 		 *            |
 		 *            |
-		 *            | (+y/north)
+		 *            | (+y/south)
 		 *            V
 		 */
 		
