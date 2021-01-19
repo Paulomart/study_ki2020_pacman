@@ -18,6 +18,8 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 	}
 
 	public static void main(String[] args) {
+		new DebugGUI().test();
+		
 		MyAgent_P5 agent = new MyAgent_P5("MyAgent");
 		Agent.start(agent, "127.0.0.1", 5000);
 	}

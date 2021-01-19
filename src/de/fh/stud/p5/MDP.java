@@ -20,29 +20,40 @@ public class MDP {
 	public WorldField[][] compute() {
 		WorldField[][] w = convertWorld(this.w);
 
-		for (int i = 0; i < 1000; i++) {
+		WorldHelper.printWorld(w);
+
+//		System.exit(0);
+		
+		for (int i = 0; i < 30; i++) {
 			w = next(w);
+			WorldHelper.printWorld(w);
+
 
 		}
+		
+		DebugGUI.w = w;
 
 		WorldHelper.printWorld(w);
 
 		return w;
 	}
 
+	// Geister abwerten, wenn Runden zu ende gehen
 	public float rate(PacmanTileType tile) {
 		switch (tile) {
 		case DOT:
-			return 1;
+//			return 900;
+			return 1200;
 		case EMPTY:
 			return 0;
 		case GHOST:
-			return -200;
+			return -9000;
 		case GHOST_AND_DOT:
-			return -180;
+			return -9800;
 		case PACMAN:
 			return 0; // ?
 		case WALL:
+//			return -9999;
 			return 0;
 		default:
 			throw new IllegalArgumentException();
@@ -80,7 +91,7 @@ public class MDP {
 
 //		return (moveTargetType.qValue * 0.6F + rate(currentType.tileType) * 0.2F + rate(moveTargetType.tileType) * 0.2F)
 //				* 0.9F; // + rate(moveTargetType.tileType);
-		return moveTargetType.qValue * 0.9F + rate(moveTargetType.tileType);
+		return moveTargetType.qValue * 0.9F + rate(currentType.tileType);
 	}
 
 	public WorldField[][] convertWorld(PacmanTileType[][] w) {
@@ -129,9 +140,19 @@ public class MDP {
 				List<QActionValue> values = new ArrayList<>();
 
 				for (PacmanAction action : PacmanAction.values()) {
-					if (action == PacmanAction.QUIT_GAME || action == PacmanAction.WAIT) {
+					if (action == PacmanAction.QUIT_GAME) { //   || action == PacmanAction.WAIT
 						continue;
 					}
+					
+					// dont respect wall when calulcating scores
+					Position newP = p.mutate(action);
+					if (WorldHelper.isInBounds(w, newP)) {
+						WorldField f = WorldHelper.getTileType(w, p.mutate(action));
+						if (f.tileType == PacmanTileType.WALL) {
+							continue;
+						}
+					}
+					
 
 					float q = q_star(w, p, action);
 
@@ -139,9 +160,23 @@ public class MDP {
 
 				}
 
-				QActionValue v = values.stream().max((a, b) -> Float.compare(a.qValue, b.qValue)).get();
+				QActionValue v = values.stream().max((a, b) -> Float.compare(a.qValue, b.qValue)).orElse(null);
+				float avg = (float) values.stream().mapToDouble(a -> a.qValue).average().getAsDouble();
 
-				newWorld[x][y] = new WorldField(v.qValue, v.qAction, t.tileType);
+				if (v == null) {
+					continue;
+				}
+//				if (avg > t.qValue) {
+					newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
+
+//				} else {
+//					newWorld[x][y] = new WorldField(t.qValue, v.qAction, t.tileType); // todo: action übernehemen?
+//
+//				}
+				
+//				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
+
+				
 
 			}
 		}

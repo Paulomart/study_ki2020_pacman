@@ -41,10 +41,10 @@ public class WorldHelper {
 
 					char fillerChar = getSymbol(f.tileType);
 
-					rows[textRow++] += "+------";
-					rows[textRow++] += String.format("|%+06.2f", f.qValue);
+					rows[textRow++] += "+-------";
+					rows[textRow++] += String.format("|%+07.1f", f.qValue);
 					rows[textRow++] += "|" + fillerChar + fillerChar + fillerChar + getSymbol(f.qAction) + fillerChar
-							+ fillerChar;
+							+ fillerChar + fillerChar;
 				}
 			}
 		}
