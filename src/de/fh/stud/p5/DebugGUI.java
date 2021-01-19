@@ -8,12 +8,24 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import de.fh.pacman.PacmanGameResult;
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p5.MDP.QActionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 public class DebugGUI {
+
+	private static int runCounter = 0;
+	private static int runsWon = 0;
+	private static int runsLostGhost = 0;
+	private static int runsLostTurns = 0;
+
+	private static long turnsCalculated = 0;
+	private static double turnsSumMs = 0;
+	private static long turnsMaxNs = 0;
+	private static long turnsMinNs = Long.MAX_VALUE;
+
 	private static WorldField[][] w;
 	private static JFrame frame;
 
@@ -33,6 +45,26 @@ public class DebugGUI {
 			frame.validate();
 			frame.repaint();
 		});
+	}
+
+	public static void onRunEnded(PacmanGameResult r) {
+		runCounter++;
+
+		if (r.getRemainingDots() == 0) {
+			runsWon++;
+		} else if (r.getTurns() == 1000) {
+			runsLostTurns++;
+		} else {
+			runsLostGhost++;
+		}
+	}
+
+	public static void onTurnEnded(long ns) {
+		turnsCalculated++;
+
+		turnsMaxNs = Math.max(turnsMaxNs, ns);
+		turnsMinNs = Math.min(turnsMinNs, ns);
+		turnsSumMs = turnsSumMs + (ns / 1000D / 1000D);
 	}
 
 	@NoArgsConstructor
@@ -179,11 +211,36 @@ public class DebugGUI {
 		float vMin = Float.MAX_VALUE;
 		float vMax = Float.MIN_VALUE;
 
+		private void drawStats(Graphics g) {
+
+			double winRate = runCounter != 0 ? ((double) runsWon / (double) runCounter * 100D) : 0;
+			double ghostRate = runCounter != 0 ? ((double) runsLostGhost / (double) runCounter * 100D) : 0;
+			double turnsRate = runCounter != 0 ? ((double) runsLostTurns / (double) runCounter * 100D) : 0;
+
+			String fmt = String.format("Total %d, won %d (%3.2f%%), ghost %d (%3.2f%%), turns %d (%3.2f%%)", runCounter,
+					runsWon, winRate, runsLostGhost, ghostRate, runsLostTurns, turnsRate);
+
+			g.drawString(fmt, 10, 10);
+
+			double avgTurn = turnsSumMs / ((double) turnsCalculated);
+
+			fmt = String.format("Turns total %d, avg %5.4f, min %5.4f, max %5.4f (ms)", turnsCalculated, avgTurn,
+					turnsMinNs / 1e6D, turnsMaxNs / 1e6D);
+
+			g.drawString(fmt, 10, 25);
+
+		}
+
 		@Override
 		public void paint(Graphics g) {
+
 			if (w == null) {
+				g.setColor(Color.black);
+				drawStats(g);
 				return;
 			}
+
+			g.setColor(Color.black);
 
 			Dimension size = getSize();
 
@@ -229,6 +286,8 @@ public class DebugGUI {
 				}
 			}
 
+			g.setColor(Color.white);
+			drawStats(g);
 		}
 
 	}

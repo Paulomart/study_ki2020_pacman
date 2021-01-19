@@ -57,10 +57,12 @@ public class MDP {
 		case GHOST:
 //			return (float) (-9000F * pLeft * ghostMultiplier);
 			return (float) (-9000F * pLeft);
+//			return -9000F;
 
 		case GHOST_AND_DOT:
 //			return (float) (-9800F * pLeft * ghostMultiplier);
 			return (float) (-9800F * pLeft);
+//			return -9800F;
 		case PACMAN:
 			return 0; // ?
 		case WALL:

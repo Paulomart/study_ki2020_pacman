@@ -35,13 +35,12 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		MDP mdp = new MDP(percept);
 		policy = mdp.compute();
 
-//		System.exit(0);
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));
 
 		long nsStop = System.nanoTime();
-		double diff = ((double) (nsStop - nsStart)) / 1000D / 1000D;
-		System.out.println(diff + "ms");
+		
+		DebugGUI.onTurnEnded(nsStop - nsStart);
 
 		return f.qAction;
 	}
@@ -53,6 +52,7 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	@Override
 	protected void onGameover(PacmanGameResult gameResult) {
+		DebugGUI.onRunEnded(gameResult);
 	}
 
 }
