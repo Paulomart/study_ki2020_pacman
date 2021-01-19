@@ -1,6 +1,7 @@
 package de.fh.stud.p5;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import de.fh.pacman.enums.PacmanAction;
@@ -20,20 +21,12 @@ public class MDP {
 	public WorldField[][] compute() {
 		WorldField[][] w = convertWorld(this.w);
 
-		WorldHelper.printWorld(w);
-
-//		System.exit(0);
-		
 		for (int i = 0; i < 30; i++) {
 			w = next(w);
-			WorldHelper.printWorld(w);
-
-
+			DebugGUI.setW(w);
 		}
-		
-		DebugGUI.w = w;
 
-		WorldHelper.printWorld(w);
+		DebugGUI.setW(w);
 
 		return w;
 	}
@@ -105,7 +98,7 @@ public class MDP {
 				PacmanTileType t = w[x][y];
 
 				float baseRating = rate(t);
-				world[x][y] = new WorldField(baseRating, PacmanAction.WAIT, t);
+				world[x][y] = new WorldField(baseRating, PacmanAction.WAIT, t, Arrays.asList());
 
 			}
 		}
@@ -140,10 +133,10 @@ public class MDP {
 				List<QActionValue> values = new ArrayList<>();
 
 				for (PacmanAction action : PacmanAction.values()) {
-					if (action == PacmanAction.QUIT_GAME) { //   || action == PacmanAction.WAIT
+					if (action == PacmanAction.QUIT_GAME || action == PacmanAction.WAIT) {
 						continue;
 					}
-					
+
 					// dont respect wall when calulcating scores
 					Position newP = p.mutate(action);
 					if (WorldHelper.isInBounds(w, newP)) {
@@ -152,7 +145,6 @@ public class MDP {
 							continue;
 						}
 					}
-					
 
 					float q = q_star(w, p, action);
 
@@ -167,16 +159,14 @@ public class MDP {
 					continue;
 				}
 //				if (avg > t.qValue) {
-					newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
+				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType, values);
 
 //				} else {
 //					newWorld[x][y] = new WorldField(t.qValue, v.qAction, t.tileType); // todo: action übernehemen?
 //
 //				}
-				
-//				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
 
-				
+//				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
 
 			}
 		}
@@ -189,8 +179,8 @@ public class MDP {
 	@RequiredArgsConstructor
 	class QActionValue {
 
-		private final PacmanAction qAction;
-		private final float qValue;
+		final PacmanAction qAction;
+		final float qValue;
 
 	}
 
