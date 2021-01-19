@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import de.fh.kiServer.util.Vector2;
+import de.fh.pacman.PacmanPercept;
 import de.fh.pacman.enums.PacmanAction;
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
@@ -12,37 +14,53 @@ import lombok.ToString;
 
 public class MDP {
 
-	private final PacmanTileType[][] w;
+	private final PacmanPercept percept;
 
-	public MDP(PacmanTileType[][] w) {
-		this.w = w;
+	public MDP(PacmanPercept percept) {
+		this.percept = percept;
 	}
 
 	public WorldField[][] compute() {
-		WorldField[][] w = convertWorld(this.w);
+		WorldField[][] w = convertWorld(this.percept.getView());
 
-		for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 50; i++) {
 			w = next(w);
-			DebugGUI.setW(w);
 		}
-
+		
 		DebugGUI.setW(w);
 
 		return w;
 	}
 
 	// Geister abwerten, wenn Runden zu ende gehen
-	public float rate(PacmanTileType tile) {
+	public float rate(PacmanTileType tile, Position p) {
+		double pLeft = ((double) (percept.getMaxTurns() - percept.getTurn())) / (double) percept.getMaxTurns();
+
+		double ghostMultiplier = 1;
+		if (p != null && tile == PacmanTileType.GHOST || tile == PacmanTileType.GHOST_AND_DOT) {
+			String ghostType = percept.getGhostTypes().get(new Vector2(p.x, p.y));
+			if (ghostType.equalsIgnoreCase("ghost_hunter")) {
+				ghostMultiplier = 1;
+			} else if (ghostType.equalsIgnoreCase("ghost_random")) {
+				ghostMultiplier = 0.7;
+			}
+		}
+
 		switch (tile) {
 		case DOT:
-//			return 900;
-			return 1200;
+			return 900;
+//			return 1200;
+//			return 1800;
+
 		case EMPTY:
 			return 0;
 		case GHOST:
-			return -9000;
+//			return (float) (-9000F * pLeft * ghostMultiplier);
+			return (float) (-9000F * pLeft);
+
 		case GHOST_AND_DOT:
-			return -9800;
+//			return (float) (-9800F * pLeft * ghostMultiplier);
+			return (float) (-9800F * pLeft);
 		case PACMAN:
 			return 0; // ?
 		case WALL:
@@ -75,7 +93,7 @@ public class MDP {
 //		}
 //
 		if (moveTargetType.tileType == PacmanTileType.WALL || currentType.tileType == PacmanTileType.WALL) {
-			return rate(PacmanTileType.WALL);
+			return rate(PacmanTileType.WALL, null);
 		}
 
 //		if (moveTargetType.tileType == PacmanTileType.DOT || currentType.tileType == PacmanTileType.DOT) {
@@ -84,7 +102,9 @@ public class MDP {
 
 //		return (moveTargetType.qValue * 0.6F + rate(currentType.tileType) * 0.2F + rate(moveTargetType.tileType) * 0.2F)
 //				* 0.9F; // + rate(moveTargetType.tileType);
-		return moveTargetType.qValue * 0.9F + rate(currentType.tileType);
+		float rawScore = moveTargetType.qValue * 0.9F + rate(currentType.tileType, pos);
+
+		return rawScore;
 	}
 
 	public WorldField[][] convertWorld(PacmanTileType[][] w) {
@@ -97,7 +117,7 @@ public class MDP {
 
 				PacmanTileType t = w[x][y];
 
-				float baseRating = rate(t);
+				float baseRating = rate(t, new Position(x, y));
 				world[x][y] = new WorldField(baseRating, PacmanAction.WAIT, t, Arrays.asList());
 
 			}
@@ -153,21 +173,14 @@ public class MDP {
 				}
 
 				QActionValue v = values.stream().max((a, b) -> Float.compare(a.qValue, b.qValue)).orElse(null);
-				float avg = (float) values.stream().mapToDouble(a -> a.qValue).average().getAsDouble();
 
 				if (v == null) {
+					newWorld[x][y] = t;
 					continue;
 				}
-//				if (avg > t.qValue) {
+
+				float avg = (float) values.stream().mapToDouble(a -> a.qValue).average().getAsDouble();
 				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType, values);
-
-//				} else {
-//					newWorld[x][y] = new WorldField(t.qValue, v.qAction, t.tileType); // todo: action übernehemen?
-//
-//				}
-
-//				newWorld[x][y] = new WorldField(avg, v.qAction, t.tileType);
-
 			}
 		}
 

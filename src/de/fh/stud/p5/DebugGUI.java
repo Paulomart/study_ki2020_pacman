@@ -6,6 +6,7 @@ import java.awt.Graphics;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p5.MDP.QActionValue;
@@ -26,10 +27,12 @@ public class DebugGUI {
 	}
 
 	public static void setW(WorldField[][] w) {
-		DebugGUI.w = w;
-		frame.getComponents()[0].repaint();
-		frame.validate();
-		frame.repaint();
+		SwingUtilities.invokeLater(() -> {
+			DebugGUI.w = w;
+			frame.getComponents()[0].repaint();
+			frame.validate();
+			frame.repaint();
+		});
 	}
 
 	@NoArgsConstructor
@@ -173,6 +176,9 @@ public class DebugGUI {
 			return String.format("%+7.1f", num);
 		}
 
+		float vMin = Float.MAX_VALUE;
+		float vMax = Float.MIN_VALUE;
+
 		@Override
 		public void paint(Graphics g) {
 			if (w == null) {
@@ -192,8 +198,6 @@ public class DebugGUI {
 				g.drawLine(0, linesY[y], size.width, linesY[y]);
 			}
 
-			float vMin = Float.MAX_VALUE;
-			float vMax = Float.MIN_VALUE;
 			for (int x = 0; x < w.length; x++) {
 				for (int y = 0; y < w[x].length; y++) {
 					WorldField f = w[x][y];

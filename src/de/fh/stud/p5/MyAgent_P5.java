@@ -19,7 +19,7 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	public static void main(String[] args) {
 		new DebugGUI().test();
-		
+
 		MyAgent_P5 agent = new MyAgent_P5("MyAgent");
 		Agent.start(agent, "127.0.0.1", 5000);
 	}
@@ -30,14 +30,18 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 //			throw new IllegalStateException("Bumpled into wall. Out of sync?");
 		}
 
-		
+		long nsStart = System.nanoTime();
 
-			MDP mdp = new MDP(percept.getView());
-			policy = mdp.compute();
+		MDP mdp = new MDP(percept);
+		policy = mdp.compute();
 
 //		System.exit(0);
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));
+
+		long nsStop = System.nanoTime();
+		double diff = ((double) (nsStop - nsStart)) / 1000D / 1000D;
+		System.out.println(diff + "ms");
 
 		return f.qAction;
 	}
@@ -49,7 +53,6 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	@Override
 	protected void onGameover(PacmanGameResult gameResult) {
-
 	}
 
 }
