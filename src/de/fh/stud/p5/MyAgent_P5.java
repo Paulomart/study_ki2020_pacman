@@ -1,5 +1,7 @@
 package de.fh.stud.p5;
 
+import java.util.Arrays;
+
 import de.fh.kiServer.agents.Agent;
 import de.fh.pacman.PacmanAgent_2021;
 import de.fh.pacman.PacmanGameResult;
@@ -7,11 +9,13 @@ import de.fh.pacman.PacmanPercept;
 import de.fh.pacman.PacmanStartInfo;
 import de.fh.pacman.enums.PacmanAction;
 import de.fh.pacman.enums.PacmanActionEffect;
+import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
 
 public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	private WorldField[][] policy;
+	private int dotsMax = -1;
 
 	public MyAgent_P5(String name) {
 		super(name);
@@ -29,10 +33,14 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		if (actionEffect == PacmanActionEffect.BUMPED_INTO_WALL) {
 //			throw new IllegalStateException("Bumpled into wall. Out of sync?");
 		}
+		
+		if (dotsMax == -1) {
+			dotsMax = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
+		}
 
 		long nsStart = System.nanoTime();
 
-		MDP mdp = new MDP(percept);
+		MDP mdp = new MDP(percept, dotsMax);
 		policy = mdp.compute();
 
 
@@ -47,7 +55,7 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	@Override
 	protected void onGameStart(PacmanStartInfo startInfo) {
-
+		dotsMax = -1;
 	}
 
 	@Override

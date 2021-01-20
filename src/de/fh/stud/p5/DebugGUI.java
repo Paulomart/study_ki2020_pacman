@@ -1,20 +1,36 @@
 package de.fh.stud.p5;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
+import java.util.Arrays;
+import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import de.fh.pacman.PacmanGameResult;
 import de.fh.pacman.enums.PacmanTileType;
+import de.fh.stud.p1.Position;
 import de.fh.stud.p5.MDP.QActionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 public class DebugGUI {
+//
+//	@RequiredArgsConstructor
+//	static class DeadEnd {
+//		final Position startPosition;
+//		final Position endPosition;
+//		final Position[] path;
+//	}
 
 	private static int runCounter = 0;
 	private static int runsWon = 0;
@@ -27,25 +43,53 @@ public class DebugGUI {
 	private static long turnsMinNs = Long.MAX_VALUE;
 
 	private static WorldField[][] w;
+	private static List<DeadEnd> deadEnds = Arrays.asList();
+//			Arrays.asList(new DeadEnd(new Position(4, 6), new Position(3, 8),
+//			new Position[] { new Position(4, 6), new Position(4, 7), new Position(4, 8), new Position(3, 8) }));
+
 	private static JFrame frame;
 
 	public void test() {
 		frame = new JFrame("Top Level Demo");
 		frame.setSize(800, 800);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new BorderLayout());
 
-		frame.add(new World());
+		frame.add(new World(), BorderLayout.CENTER);
 		frame.setVisible(true);
+
+		JButton resetBtn = new JButton("Reset");
+		resetBtn.addActionListener((e) -> {
+			runCounter = 0;
+			runsWon = 0;
+			runsLostGhost = 0;
+			runsLostTurns = 0;
+
+			turnsCalculated = 0;
+			turnsSumMs = 0;
+			turnsMaxNs = 0;
+			turnsMinNs = Long.MAX_VALUE;
+		});
+		frame.add(resetBtn, BorderLayout.PAGE_START);
 	}
 
 	public static void setW(WorldField[][] w) {
 		SwingUtilities.invokeLater(() -> {
 			DebugGUI.w = w;
-			frame.getComponents()[0].repaint();
 			frame.validate();
 			frame.repaint();
 		});
 	}
+	
+	public static void setDeadEnds(List<DeadEnd> deadEnds) {
+		SwingUtilities.invokeLater(() -> {
+			DebugGUI.deadEnds = deadEnds;
+			frame.validate();
+			frame.repaint();
+		});
+	}
+	
+	
 
 	public static void onRunEnded(PacmanGameResult r) {
 		runCounter++;
@@ -104,7 +148,7 @@ public class DebugGUI {
 			return a;
 		}
 
-		private void drawStuff(Area a, Graphics g, WorldField f, float vMin, float vMax) {
+		private void drawTile(Area a, Graphics g, WorldField f, float vMin, float vMax) {
 			int innerWidth = a.width / 3;
 			int innerHeight = a.height / 3;
 
@@ -220,14 +264,14 @@ public class DebugGUI {
 			String fmt = String.format("Total %d, won %d (%3.2f%%), ghost %d (%3.2f%%), turns %d (%3.2f%%)", runCounter,
 					runsWon, winRate, runsLostGhost, ghostRate, runsLostTurns, turnsRate);
 
-			g.drawString(fmt, 10, 10);
+			g.drawString(fmt, 10, 15);
 
 			double avgTurn = turnsSumMs / ((double) turnsCalculated);
 
 			fmt = String.format("Turns total %d, avg %5.4f, min %5.4f, max %5.4f (ms)", turnsCalculated, avgTurn,
 					turnsMinNs / 1e6D, turnsMaxNs / 1e6D);
 
-			g.drawString(fmt, 10, 25);
+			g.drawString(fmt, 10, 30);
 
 		}
 
@@ -280,10 +324,34 @@ public class DebugGUI {
 
 					} else {
 						g.setColor(Color.black);
-						drawStuff(a, g, f, vMin, vMax);
+						drawTile(a, g, f, vMin, vMax);
 					}
 
 				}
+			}
+
+			// draw dead ends
+			for (DeadEnd deadEnd : deadEnds) {
+
+				Graphics2D g2 = (Graphics2D) g;
+				Stroke oldStroke = g2.getStroke();
+				g2.setStroke(new BasicStroke(3));
+
+				for (Position pathPart : deadEnd.path) {
+					Area pathArea = getCoordsBlock(pathPart.x, pathPart.y, size, linesX, linesY);
+					g.setColor(Color.blue);
+					g.drawRect(pathArea.x1, pathArea.y1, pathArea.width, pathArea.height);
+				}
+
+				Area start = getCoordsBlock(deadEnd.startPosition.x, deadEnd.startPosition.y, size, linesX, linesY);
+				g.setColor(Color.green);
+				g.drawRect(start.x1, start.y1, start.width, start.height);
+
+				Area end = getCoordsBlock(deadEnd.endPosition.x, deadEnd.endPosition.y, size, linesX, linesY);
+				g.setColor(Color.red);
+				g.drawRect(end.x1, end.y1, end.width, end.height);
+
+				g2.setStroke(oldStroke);
 			}
 
 			g.setColor(Color.white);

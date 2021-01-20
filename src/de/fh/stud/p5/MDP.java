@@ -15,9 +15,14 @@ import lombok.ToString;
 public class MDP {
 
 	private final PacmanPercept percept;
+	private final int dotsMax;
+	private final int dotsLeft;
 
-	public MDP(PacmanPercept percept) {
+	public MDP(PacmanPercept percept, int dotsMax) {
 		this.percept = percept;
+
+		this.dotsMax = dotsMax;
+		this.dotsLeft = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
 	}
 
 	public WorldField[][] compute() {
@@ -26,15 +31,16 @@ public class MDP {
 		for (int i = 0; i < 50; i++) {
 			w = next(w);
 		}
-		
+
 		DebugGUI.setW(w);
 
 		return w;
 	}
 
-	// Geister abwerten, wenn Runden zu ende gehen
 	public float rate(PacmanTileType tile, Position p) {
-		double pLeft = ((double) (percept.getMaxTurns() - percept.getTurn())) / (double) percept.getMaxTurns();
+		double turnsPercentLeft = ((double) (percept.getMaxTurns() - percept.getTurn()))
+				/ (double) percept.getMaxTurns();
+		double dotsPercentLeft = ((double) dotsLeft) / ((double) dotsMax);
 
 		double ghostMultiplier = 1;
 		if (p != null && tile == PacmanTileType.GHOST || tile == PacmanTileType.GHOST_AND_DOT) {
@@ -56,12 +62,16 @@ public class MDP {
 			return 0;
 		case GHOST:
 //			return (float) (-9000F * pLeft * ghostMultiplier);
-			return (float) (-9000F * pLeft);
+			return (float) (-9000F * turnsPercentLeft);
+//			return (float) (-9000F * dotsPercentLeft);
+
 //			return -9000F;
 
 		case GHOST_AND_DOT:
 //			return (float) (-9800F * pLeft * ghostMultiplier);
-			return (float) (-9800F * pLeft);
+			return (float) (-9800F * turnsPercentLeft);
+//			return (float) (-9800F * dotsPercentLeft);
+
 //			return -9800F;
 		case PACMAN:
 			return 0; // ?
