@@ -14,5 +14,4 @@ public final class WorldField {
 	public final PacmanAction qAction;
 	public final PacmanTileType tileType;
 	public final List<QActionValue> allQActionValues;
-
 }

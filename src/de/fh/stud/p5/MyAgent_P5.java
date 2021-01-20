@@ -1,5 +1,6 @@
 package de.fh.stud.p5;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import de.fh.kiServer.agents.Agent;
@@ -39,10 +40,12 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		}
 
 		long nsStart = System.nanoTime();
+		
+		ArrayList<DeadEnd> deadEnds = DeadEnd.getDeadEnds(percept.getView());
+		DebugGUI.setDeadEnds(deadEnds);
 
-		MDP mdp = new MDP(percept, dotsMax);
+		MDP mdp = new MDP(percept, dotsMax, deadEnds);
 		policy = mdp.compute();
-
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));
 

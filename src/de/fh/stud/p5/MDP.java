@@ -9,17 +9,20 @@ import de.fh.pacman.PacmanPercept;
 import de.fh.pacman.enums.PacmanAction;
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
+import de.fh.stud.p5.DeadEnd;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 public class MDP {
 
 	private final PacmanPercept percept;
+	private final List<DeadEnd> deadEnds;
 	private final int dotsMax;
 	private final int dotsLeft;
 
-	public MDP(PacmanPercept percept, int dotsMax) {
+	public MDP(PacmanPercept percept, int dotsMax, List<DeadEnd> deadEnds) {
 		this.percept = percept;
+		this.deadEnds = deadEnds;
 
 		this.dotsMax = dotsMax;
 		this.dotsLeft = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
@@ -51,36 +54,52 @@ public class MDP {
 				ghostMultiplier = 0.7;
 			}
 		}
+		
+		float positionValue = 0F;
 
 		switch (tile) {
 		case DOT:
-			return 900;
-//			return 1200;
-//			return 1800;
-
+			positionValue = 900;
+//			positionValue = 1200;
+//			positionValue = 1800;
+			break;
+			
 		case EMPTY:
-			return 0;
+			positionValue = 0;
+			break;
+			
 		case GHOST:
-//			return (float) (-9000F * pLeft * ghostMultiplier);
-			return (float) (-9000F * turnsPercentLeft);
-//			return (float) (-9000F * dotsPercentLeft);
-
-//			return -9000F;
-
+//			positionValue = (float) (-9000F * pLeft * ghostMultiplier);
+			positionValue = (float) (-9000F * turnsPercentLeft);
+//			positionValue = (float) (-9000F * dotsPercentLeft);
+//			positionValue = -9000F;
+			break;
+			
 		case GHOST_AND_DOT:
-//			return (float) (-9800F * pLeft * ghostMultiplier);
-			return (float) (-9800F * turnsPercentLeft);
-//			return (float) (-9800F * dotsPercentLeft);
+//			positionValue = (float) (-9800F * pLeft * ghostMultiplier);
+			positionValue = (float) (-9800F * turnsPercentLeft);
+//			positionValue = (float) (-9800F * dotsPercentLeft);
 
-//			return -9800F;
+//			positionValue = -9800F;
+			break;
+		
 		case PACMAN:
-			return 0; // ?
+			positionValue = 0; // ?
+			break;
+			
 		case WALL:
-//			return -9999;
-			return 0;
+//			positionValue = -9999;
+			positionValue = 0;
+			break;
+			
 		default:
 			throw new IllegalArgumentException();
 		}
+		
+		if (DeadEnd.isInDeadEnd(deadEnds, p)) {
+			return positionValue;
+		}
+		return positionValue;
 
 	}
 
@@ -170,12 +189,18 @@ public class MDP {
 					}
 
 					// dont respect wall when calulcating scores
+					// ignore beginning of dead ends for the beginning
 					Position newP = p.mutate(action);
 					if (WorldHelper.isInBounds(w, newP)) {
 						WorldField f = WorldHelper.getTileType(w, p.mutate(action));
 						if (f.tileType == PacmanTileType.WALL) {
 							continue;
 						}
+						
+					}
+					
+					if (DeadEnd.isStartDeadEnd(deadEnds, newP)) {
+						continue;
 					}
 
 					float q = q_star(w, p, action);

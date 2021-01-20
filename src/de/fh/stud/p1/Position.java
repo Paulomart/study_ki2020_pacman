@@ -1,7 +1,9 @@
 package de.fh.stud.p1;
 
 import de.fh.pacman.enums.PacmanAction;
+import lombok.ToString;
 
+@ToString
 public class Position {
 
 	public final int x;
@@ -11,7 +13,12 @@ public class Position {
 		this.x = x;
 		this.y = y;
 	}
-
+	
+	public Position north() { return new Position(this.x, this.y - 1); }
+	public Position south() { return new Position(this.x, this.y + 1); }
+	public Position west() { return new Position(this.x - 1, this.y); }
+	public Position east() { return new Position(this.x + 1, this.y); }
+	
 	public Position mutate(PacmanAction action) {
 		/*
 		 *            ^ (-y/north)
@@ -47,6 +54,7 @@ public class Position {
 			throw new IllegalArgumentException("Unexpected value: " + action);
 		}
 	}
+	
 
 	@Override
 	public int hashCode() {
