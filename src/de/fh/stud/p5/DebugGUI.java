@@ -249,6 +249,7 @@ public class DebugGUI {
 			}
 		}
 
+		@SuppressWarnings("restriction")
 		public Color getValueColor(float value, float min, float max) {
 			double hue = javafx.scene.paint.Color.BLUE.getHue()
 					+ (javafx.scene.paint.Color.RED.getHue() - javafx.scene.paint.Color.BLUE.getHue()) * (value - min)
@@ -283,7 +284,7 @@ public class DebugGUI {
 			g.drawString(fmt, 10, 30);
 
 			double dotsLeftAvg = (double) dotsLeftSum / runCounter;
-			
+
 			fmt = String.format("Dots left avg %5.2f", dotsLeftAvg);
 			g.drawString(fmt, 10, 45);
 		}

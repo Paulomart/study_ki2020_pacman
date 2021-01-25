@@ -50,9 +50,9 @@ public class MDP {
 		if (p != null && tile == PacmanTileType.GHOST || tile == PacmanTileType.GHOST_AND_DOT) {
 			String ghostType = percept.getGhostTypes().get(new Vector2(p.x, p.y));
 			if (ghostType.equalsIgnoreCase("ghost_hunter")) {
-				ghostMultiplier = 1;
+				ghostMultiplier = 0.9;
 			} else if (ghostType.equalsIgnoreCase("ghost_random")) {
-				ghostMultiplier = 0.7;
+				ghostMultiplier = 1;
 			}
 		}
 
@@ -72,6 +72,7 @@ public class MDP {
 		case GHOST:
 //			positionValue = (float) (-9000F * pLeft * ghostMultiplier);
 			positionValue = (float) (-9000F * turnsPercentLeft);
+//			positionValue = (float) (-9000F * turnsPercentLeft * ghostMultiplier);
 //			positionValue = (float) (-9000F * dotsPercentLeft);
 //			positionValue = -9000F;
 			break;
@@ -79,6 +80,7 @@ public class MDP {
 		case GHOST_AND_DOT:
 //			positionValue = (float) (-9800F * pLeft * ghostMultiplier);
 			positionValue = (float) (-9800F * turnsPercentLeft);
+//			positionValue = (float) (-9800F * turnsPercentLeft * ghostMultiplier);
 //			positionValue = (float) (-9800F * dotsPercentLeft);
 //			positionValue = -9800F;
 			break;
@@ -148,10 +150,6 @@ public class MDP {
 
 		for (int x = 0; x < w.length; x++) {
 			newWorld[x] = new WorldField[w[x].length];
-
-			for (int y = 0; y < w[x].length; y++) {
-				WorldField t = w[x][y];
-			}
 		}
 
 		return newWorld;
@@ -175,7 +173,6 @@ public class MDP {
 					}
 
 					// dont respect wall when calulcating scores
-					// ignore beginning of dead ends for the beginning
 					Position newP = p.mutate(action);
 					if (WorldHelper.isInBounds(w, newP)) {
 						WorldField f = WorldHelper.getTileType(w, p.mutate(action));
@@ -185,6 +182,7 @@ public class MDP {
 
 					}
 
+					// ignore beginning of dead ends for the beginning
 					DeadEnd isDeadEnd = DeadEnd.isStartDeadEnd(deadEnds, newP);
 					if (isDeadEnd != null && !isDeadEnd.path.contains(p)) {
 						// only calc when needed (cache?)
@@ -192,15 +190,19 @@ public class MDP {
 						int ghostsDistance = this.ghostDistances.get(newP);
 						int deadEndLength = isDeadEnd.path.size();
 
-						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2 + 1;
-						if (ghostIsTooClose) {
-							continue;
-						}
-
 						if (!isDeadEnd.path.stream().map(pathEntry -> WorldHelper.getTileType(w, pathEntry))
 								.anyMatch(tt -> tt.tileType == PacmanTileType.DOT)) {
 							continue;
 						}
+
+						// only works because the if above ensures that there are dots inside the dead end
+						boolean onlyTheDotsInTheDeadEnd = isDeadEnd.path.size() >= dotsLeft;
+						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2 + 1;
+
+						if (ghostIsTooClose && !onlyTheDotsInTheDeadEnd) {
+							continue;
+						}
+
 					}
 
 					float q = q_star(w, p, action);
