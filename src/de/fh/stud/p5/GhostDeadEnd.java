@@ -14,7 +14,8 @@ import lombok.experimental.var;
 public class GhostDeadEnd {
 	
 	public Position startPosition;
-	public Position endPosition;
+	private Position endPosition;
+	public LinkedList<Position> endPositions = new LinkedList<>();
 	public Position fieldInFrontOfGhostDeadEnd;
 	public LinkedList<Position> path = new LinkedList<>();
 	
@@ -23,6 +24,11 @@ public class GhostDeadEnd {
 	public GhostDeadEnd(GhostDeadEnd g1, GhostDeadEnd g2) {
 		this.children.add(g1);
 		this.children.add(g2);
+		this.startPosition = g1.fieldInFrontOfGhostDeadEnd;
+		this.endPositions.add(g1.endPosition);
+		this.endPositions.add(g2.endPosition);
+		this.path.addAll(g1.path);
+		this.path.addAll(g2.path);
 	}
 	
 	public GhostDeadEnd(PacmanTileType[][] w, Position ghostPosition, Position startPosition) {
