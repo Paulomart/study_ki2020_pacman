@@ -1,7 +1,9 @@
 package de.fh.stud.p5;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import de.fh.kiServer.agents.Agent;
 import de.fh.pacman.PacmanAgent_2021;
@@ -34,23 +36,30 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		if (actionEffect == PacmanActionEffect.BUMPED_INTO_WALL) {
 //			throw new IllegalStateException("Bumpled into wall. Out of sync?");
 		}
-		
+
 		if (dotsMax == -1) {
 			dotsMax = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
 		}
 
 		long nsStart = System.nanoTime();
-		
-		ArrayList<DeadEnd> deadEnds = DeadEnd.getDeadEnds(percept.getView());
+
+		List<DeadEnd> deadEnds = DeadEnd.getDeadEnds(percept.getView());
 		DebugGUI.setDeadEnds(deadEnds);
 
-		MDP mdp = new MDP(percept, dotsMax, deadEnds);
+		GhostDistance gd = new GhostDistance(percept.getView());
+		Map<Position, Integer> gdMap = new HashMap<Position, Integer>();
+		for (DeadEnd deadEnd : deadEnds) {
+			gdMap.put(deadEnd.startPosition, gd.at(deadEnd.startPosition));
+		}
+		DebugGUI.setGhostDistances(gdMap);
+
+		MDP mdp = new MDP(percept, dotsMax, deadEnds, gdMap);
 		policy = mdp.compute();
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));
 
 		long nsStop = System.nanoTime();
-		
+
 		DebugGUI.onTurnEnded(nsStop - nsStart);
 
 		return f.qAction;

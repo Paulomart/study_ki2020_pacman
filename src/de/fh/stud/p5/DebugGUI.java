@@ -8,7 +8,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,16 +23,8 @@ import de.fh.stud.p1.Position;
 import de.fh.stud.p5.MDP.QActionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 public class DebugGUI {
-//
-//	@RequiredArgsConstructor
-//	static class DeadEnd {
-//		final Position startPosition;
-//		final Position endPosition;
-//		final Position[] path;
-//	}
 
 	private static int runCounter = 0;
 	private static int runsWon = 0;
@@ -44,8 +38,7 @@ public class DebugGUI {
 
 	private static WorldField[][] w;
 	private static List<DeadEnd> deadEnds = Arrays.asList();
-//			Arrays.asList(new DeadEnd(new Position(4, 6), new Position(3, 8),
-//			new Position[] { new Position(4, 6), new Position(4, 7), new Position(4, 8), new Position(3, 8) }));
+	private static Map<Position, Integer> ghostDistances = new HashMap<>(2);
 
 	private static JFrame frame;
 
@@ -76,20 +69,29 @@ public class DebugGUI {
 	public static void setW(WorldField[][] w) {
 		SwingUtilities.invokeLater(() -> {
 			DebugGUI.w = w;
-			frame.validate();
-			frame.repaint();
+			forceRefuckingPaint();
 		});
 	}
-	
+
 	public static void setDeadEnds(List<DeadEnd> deadEnds) {
 		SwingUtilities.invokeLater(() -> {
 			DebugGUI.deadEnds = deadEnds;
-			frame.validate();
-			frame.repaint();
+			forceRefuckingPaint();
+
 		});
 	}
-	
-	
+
+	public static void setGhostDistances(Map<Position, Integer> ghostDistances) {
+		SwingUtilities.invokeLater(() -> {
+			DebugGUI.ghostDistances = ghostDistances;
+			forceRefuckingPaint();
+		});
+	}
+
+	private static void forceRefuckingPaint() {
+		frame.validate();
+		frame.repaint();
+	}
 
 	public static void onRunEnded(PacmanGameResult r) {
 		runCounter++;
@@ -114,6 +116,7 @@ public class DebugGUI {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	class Area {
+		Position p;
 		int x1, x2;
 		int y1, y2;
 		int height, width;
@@ -136,6 +139,7 @@ public class DebugGUI {
 			double perSectionY = ((double) size.height) / ((double) linesY.length);
 
 			Area a = new Area();
+			a.p = new Position(x, y);
 			a.x1 = linesX[x];
 			a.y1 = linesY[y];
 
@@ -236,6 +240,11 @@ public class DebugGUI {
 			g.setColor(Color.black);
 			g.drawPolygon(pointsX, pointsY, pointsX.length);
 
+			if (ghostDistances.containsKey(a.p)) {
+				int ghostDistance = ghostDistances.get(a.p);
+				double height = g.getFontMetrics().getStringBounds("" + ghostDistance, g).getHeight();
+				g.drawString("" + ghostDistance, a.x1, (int) (a.y1 + height));
+			}
 		}
 
 		public Color getValueColor(float value, float min, float max) {

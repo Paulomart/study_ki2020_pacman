@@ -74,16 +74,28 @@ public class DeadEnd {
 		return false;	
 	}
 	
-	public static boolean isStartDeadEnd(List<DeadEnd> deadEnds, Position p) {
+	public static DeadEnd isStartDeadEnd(List<DeadEnd> deadEnds, Position p) {
 		
 		for (DeadEnd deadEnd: deadEnds) {
 			if (deadEnd.startPosition.equals(p)) {
+				return deadEnd;
+			}
+		}
+		
+		return null;	
+	}
+	
+	public static boolean isEndDeadEnd(List<DeadEnd> deadEnds, Position p) {
+		
+		for (DeadEnd deadEnd: deadEnds) {
+			if (deadEnd.endPosition.equals(p)) {
 				return true;
 			}
 		}
 		
 		return false;	
 	}
+	
 	
 	private static ArrayList<Position> getNeighbours(PacmanTileType[][] w, Position p) {
 		

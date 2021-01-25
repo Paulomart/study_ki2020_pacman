@@ -58,7 +58,7 @@ public class Suche {
 				this::noPointsLeft);
 	}
 
-	class BREADTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
+	public static class BREADTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
 
 		@Override
 		public LinkedList<TNode> create(Stream<TNode> initialNodes) {
@@ -73,7 +73,7 @@ public class Suche {
 
 	}
 
-	class DEPTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
+	public class DEPTH_FIRST<TNode extends Node> extends ClosedListSerach<TNode, LinkedList<TNode>> {
 
 		@Override
 		public LinkedList<TNode> create(Stream<TNode> initialNodes) {
@@ -88,7 +88,7 @@ public class Suche {
 
 	}
 
-	class UNIFORM_COST<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
+	public class UNIFORM_COST<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
 
 		private final ToIntFunction<TNode> costFunction;
 
@@ -113,7 +113,7 @@ public class Suche {
 
 	}
 
-	class GREEDY<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
+	public class GREEDY<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
 
 		private final ToIntFunction<TNode> heuristic;
 
@@ -138,7 +138,7 @@ public class Suche {
 
 	}
 
-	class A_STAR<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
+	public static class A_STAR<TNode extends Node> extends ClosedListSerach<TNode, Queue<TNode>> {
 
 		private final ToIntFunction<TNode> costFunction;
 		private final ToIntFunction<TNode> heuristic;

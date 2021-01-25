@@ -7,7 +7,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import de.fh.stud.p1.Knoten;
 import de.fh.stud.p3.Suche.Node;
 
 public abstract class ClosedListSerach<TNode extends Node, TQueue extends Queue<TNode>> {
@@ -51,8 +50,7 @@ public abstract class ClosedListSerach<TNode extends Node, TQueue extends Queue<
 
 			if (goalTest.test(node)) {
 				printStatus.accept(openList, closedList);
-				System.out.println("Fininshed: " + openList.size() + "\t" + closedList.size() + "\t"
-						+ ((Knoten) node).getResultedByActions().size());
+				System.out.println("Fininshed: " + openList.size() + "\t" + closedList.size() + "\t");
 				return node;
 			}
 

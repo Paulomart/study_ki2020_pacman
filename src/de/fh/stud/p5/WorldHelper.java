@@ -11,6 +11,9 @@ import de.fh.stud.p1.Position;
 
 public class WorldHelper {
 
+	public static final PacmanAction[] DIRS = { PacmanAction.GO_EAST, PacmanAction.GO_NORTH, PacmanAction.GO_SOUTH,
+			PacmanAction.GO_WEST };
+
 	public static boolean isInBounds(WorldField[][] w, Position p) {
 		return p.x >= 0 && p.x < w.length && p.y >= 0 && p.y < w[p.x].length;
 	}

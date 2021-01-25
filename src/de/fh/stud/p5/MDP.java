@@ -3,13 +3,13 @@ package de.fh.stud.p5;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import de.fh.kiServer.util.Vector2;
 import de.fh.pacman.PacmanPercept;
 import de.fh.pacman.enums.PacmanAction;
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
-import de.fh.stud.p5.DeadEnd;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -17,12 +17,14 @@ public class MDP {
 
 	private final PacmanPercept percept;
 	private final List<DeadEnd> deadEnds;
+	private final Map<Position, Integer> ghostDistances;
 	private final int dotsMax;
 	private final int dotsLeft;
 
-	public MDP(PacmanPercept percept, int dotsMax, List<DeadEnd> deadEnds) {
+	public MDP(PacmanPercept percept, int dotsMax, List<DeadEnd> deadEnds, Map<Position, Integer> ghostDistances) {
 		this.percept = percept;
 		this.deadEnds = deadEnds;
+		this.ghostDistances = ghostDistances;
 
 		this.dotsMax = dotsMax;
 		this.dotsLeft = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
@@ -54,7 +56,7 @@ public class MDP {
 				ghostMultiplier = 0.7;
 			}
 		}
-		
+
 		float positionValue = 0F;
 
 		switch (tile) {
@@ -63,41 +65,40 @@ public class MDP {
 //			positionValue = 1200;
 //			positionValue = 1800;
 			break;
-			
+
 		case EMPTY:
 			positionValue = 0;
 			break;
-			
+
 		case GHOST:
 //			positionValue = (float) (-9000F * pLeft * ghostMultiplier);
 			positionValue = (float) (-9000F * turnsPercentLeft);
 //			positionValue = (float) (-9000F * dotsPercentLeft);
 //			positionValue = -9000F;
 			break;
-			
+
 		case GHOST_AND_DOT:
 //			positionValue = (float) (-9800F * pLeft * ghostMultiplier);
 			positionValue = (float) (-9800F * turnsPercentLeft);
 //			positionValue = (float) (-9800F * dotsPercentLeft);
-
 //			positionValue = -9800F;
 			break;
-		
+
 		case PACMAN:
 			positionValue = 0; // ?
 			break;
-			
+
 		case WALL:
 //			positionValue = -9999;
 			positionValue = 0;
 			break;
-			
+
 		default:
 			throw new IllegalArgumentException();
 		}
-		
-		if (DeadEnd.isInDeadEnd(deadEnds, p)) {
-			return positionValue;
+
+		if (DeadEnd.isEndDeadEnd(deadEnds, p) && tile != PacmanTileType.DOT) {
+			return -99999;
 		}
 		return positionValue;
 
@@ -196,11 +197,25 @@ public class MDP {
 						if (f.tileType == PacmanTileType.WALL) {
 							continue;
 						}
-						
+
 					}
-					
-					if (DeadEnd.isStartDeadEnd(deadEnds, newP)) {
-						continue;
+
+					DeadEnd isDeadEnd = DeadEnd.isStartDeadEnd(deadEnds, newP);
+					if (isDeadEnd != null && !isDeadEnd.path.contains(p)) {
+						// only calc when needed (cache?)
+
+						int ghostsDistance = this.ghostDistances.get(newP);
+						int deadEndLength = isDeadEnd.path.size();
+
+						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2;
+						if (ghostIsTooClose) {
+							continue;
+						}
+
+						if (!isDeadEnd.path.stream().map(pathEntry -> WorldHelper.getTileType(w, pathEntry))
+								.anyMatch(tt -> tt.tileType == PacmanTileType.DOT)) {
+							continue;
+						}
 					}
 
 					float q = q_star(w, p, action);
