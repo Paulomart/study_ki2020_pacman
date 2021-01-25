@@ -41,8 +41,15 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		if (perGameData == null) {
 			perGameData = new PerGameData();
 			perGameData.dotsMax = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
-			perGameData.deadEnds = DeadEnd.getDeadEnds(percept.getView());
-			DebugGUI.setDeadEnds(perGameData.deadEnds);
+			try {
+				perGameData.deadEnds = DeadEnd.getDeadEnds(percept.getView());
+				DebugGUI.setDeadEnds(perGameData.deadEnds);
+			} catch (Exception e) {
+				perGameData.deadEnds = Arrays.asList();
+				System.err.println("Failed to compute dead ends:");
+				e.printStackTrace();
+			}
+
 		}
 
 		long nsStart = System.nanoTime();
