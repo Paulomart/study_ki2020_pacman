@@ -192,7 +192,7 @@ public class MDP {
 						int ghostsDistance = this.ghostDistances.get(newP);
 						int deadEndLength = isDeadEnd.path.size();
 
-						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2;
+						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2 + 1;
 						if (ghostIsTooClose) {
 							continue;
 						}
