@@ -41,6 +41,7 @@ public class DebugGUI {
 
 	private static WorldField[][] w;
 	private static List<DeadEnd> deadEnds = Arrays.asList();
+	private static List<GhostDeadEnd> ghostDeadEnds = Arrays.asList();
 	private static Map<Position, Integer> ghostDistances = new HashMap<>(2);
 
 	private static JFrame frame;
@@ -92,7 +93,13 @@ public class DebugGUI {
 		SwingUtilities.invokeLater(() -> {
 			DebugGUI.deadEnds = deadEnds;
 			forceRefuckingPaint();
+		});
+	}
 
+	public static void setGhostDeadEnds(List<GhostDeadEnd> ghostDeadEnds) {
+		SwingUtilities.invokeLater(() -> {
+			DebugGUI.ghostDeadEnds = ghostDeadEnds;
+			forceRefuckingPaint();
 		});
 	}
 
@@ -165,6 +172,21 @@ public class DebugGUI {
 
 			a.x2 = linesX[x] + a.width;
 			a.y2 = linesY[y] + a.height;
+
+			return a;
+		}
+
+		private Area pad(Area o, int padPx) {
+			Area a = new Area();
+			a.p = o.p;
+			a.x1 = o.x1 + padPx;
+			a.y1 = o.y1 + padPx;
+
+			a.x2 = o.x2 - padPx;
+			a.y2 = o.y2 - padPx;
+
+			a.width = o.width - padPx * 2;
+			a.height = o.height - padPx * 2;
 
 			return a;
 		}
@@ -388,9 +410,37 @@ public class DebugGUI {
 				g2.setStroke(oldStroke);
 			}
 
+			// draw ghost dead ends
+			for (GhostDeadEnd deadEnd : ghostDeadEnds) {
+
+				Graphics2D g2 = (Graphics2D) g;
+				Stroke oldStroke = g2.getStroke();
+				g2.setStroke(new BasicStroke(3));
+
+				for (Position pathPart : deadEnd.path) {
+					Area pathArea = pad(getCoordsBlock(pathPart.x, pathPart.y, size, linesX, linesY), 5);
+					g.setColor(Color.blue);
+					g.drawRect(pathArea.x1, pathArea.y1, pathArea.width, pathArea.height);
+				}
+
+				Area start = pad(getCoordsBlock(deadEnd.startPosition.x, deadEnd.startPosition.y, size, linesX, linesY),
+						5);
+				g.setColor(Color.green);
+				g.drawRect(start.x1, start.y1, start.width, start.height);
+
+				for (Position endPart : deadEnd.path) {
+					Area end = pad(getCoordsBlock(endPart.x, endPart.y, size, linesX, linesY), 5);
+					g.setColor(Color.red);
+					g.drawRect(end.x1, end.y1, end.width, end.height);
+				}
+
+				g2.setStroke(oldStroke);
+			}
+
 			g.setColor(Color.white);
 			drawStats(g);
 		}
 
 	}
+
 }

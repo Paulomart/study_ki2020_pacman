@@ -61,6 +61,9 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 			gdMap.put(deadEnd.startPosition, gd.at(deadEnd.startPosition, maxDepth));
 		}
 		DebugGUI.setGhostDistances(gdMap);
+		
+		DebugGUI.setGhostDeadEnds(GhostDeadEnd.getGhostDeadEnds(percept.getView()));
+		
 
 		MDP mdp = new MDP(percept, perGameData.dotsMax, perGameData.deadEnds, gdMap);
 		policy = mdp.compute();

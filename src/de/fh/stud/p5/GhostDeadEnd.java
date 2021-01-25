@@ -3,13 +3,12 @@ package de.fh.stud.p5;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
 import de.fh.stud.p1.WorldHelper;
-import lombok.experimental.var;
 
 public class GhostDeadEnd {
 	
@@ -58,7 +57,7 @@ public class GhostDeadEnd {
 		this.path.removeLast();
 	}
 	
-	public static ArrayList<GhostDeadEnd> getGhostDeadEnds(PacmanTileType[][] w) {
+	public static List<GhostDeadEnd> getGhostDeadEnds(PacmanTileType[][] w) {
 		
 		ArrayList<GhostDeadEnd> ghostDeadEnds = new ArrayList<>();
 		HashMap<Position, ArrayList<GhostDeadEnd>> singleGhostDeadEnds = new HashMap<>();
