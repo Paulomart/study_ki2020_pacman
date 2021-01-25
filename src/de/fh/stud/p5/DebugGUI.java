@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -42,6 +44,7 @@ public class DebugGUI {
 	private static Map<Position, Integer> ghostDistances = new HashMap<>(2);
 
 	private static JFrame frame;
+	private static JCheckBox globalColor;
 
 	public void test() {
 		frame = new JFrame("Top Level Demo");
@@ -51,6 +54,8 @@ public class DebugGUI {
 
 		frame.add(new World(), BorderLayout.CENTER);
 		frame.setVisible(true);
+
+		JPanel toolbar = new JPanel(new FlowLayout());
 
 		JButton resetBtn = new JButton("Reset");
 		resetBtn.addActionListener((e) -> {
@@ -63,8 +68,17 @@ public class DebugGUI {
 			turnsSumMs = 0;
 			turnsMaxNs = 0;
 			turnsMinNs = Long.MAX_VALUE;
+			forceRefuckingPaint();
 		});
-		frame.add(resetBtn, BorderLayout.PAGE_START);
+		toolbar.add(resetBtn);
+
+		globalColor = new JCheckBox("Global color");
+		globalColor.addActionListener((e) -> forceRefuckingPaint());
+		toolbar.add(globalColor);
+
+		frame.add(toolbar, BorderLayout.PAGE_START);
+
+		forceRefuckingPaint();
 	}
 
 	public static void setW(WorldField[][] w) {
@@ -105,6 +119,7 @@ public class DebugGUI {
 		} else {
 			runsLostGhost++;
 		}
+		forceRefuckingPaint();
 	}
 
 	public static void onTurnEnded(long ns) {
@@ -264,9 +279,6 @@ public class DebugGUI {
 			return String.format("%+7.1f", num);
 		}
 
-		float vMin = Float.MAX_VALUE;
-		float vMax = Float.MIN_VALUE;
-
 		private void drawStats(Graphics g) {
 
 			double winRate = runCounter != 0 ? ((double) runsWon / (double) runCounter * 100D) : 0;
@@ -288,6 +300,9 @@ public class DebugGUI {
 			fmt = String.format("Dots left avg %5.2f", dotsLeftAvg);
 			g.drawString(fmt, 10, 45);
 		}
+
+		float vMin = Float.MAX_VALUE;
+		float vMax = Float.MIN_VALUE;
 
 		@Override
 		public void paint(Graphics g) {
@@ -311,6 +326,11 @@ public class DebugGUI {
 
 			for (int y = 0; y < linesY.length; y++) {
 				g.drawLine(0, linesY[y], size.width, linesY[y]);
+			}
+
+			if (!globalColor.isSelected()) {
+				vMin = Float.MAX_VALUE;
+				vMax = Float.MIN_VALUE;
 			}
 
 			for (int x = 0; x < w.length; x++) {
