@@ -30,6 +30,7 @@ public class DebugGUI {
 	private static int runsWon = 0;
 	private static int runsLostGhost = 0;
 	private static int runsLostTurns = 0;
+	private static int dotsLeftSum = 0;
 
 	private static long turnsCalculated = 0;
 	private static double turnsSumMs = 0;
@@ -95,6 +96,7 @@ public class DebugGUI {
 
 	public static void onRunEnded(PacmanGameResult r) {
 		runCounter++;
+		dotsLeftSum += r.getRemainingDots();
 
 		if (r.getRemainingDots() == 0) {
 			runsWon++;
@@ -272,16 +274,18 @@ public class DebugGUI {
 
 			String fmt = String.format("Total %d, won %d (%3.2f%%), ghost %d (%3.2f%%), turns %d (%3.2f%%)", runCounter,
 					runsWon, winRate, runsLostGhost, ghostRate, runsLostTurns, turnsRate);
-
 			g.drawString(fmt, 10, 15);
 
 			double avgTurn = turnsSumMs / ((double) turnsCalculated);
 
 			fmt = String.format("Turns total %d, avg %5.4f, min %5.4f, max %5.4f (ms)", turnsCalculated, avgTurn,
 					turnsMinNs / 1e6D, turnsMaxNs / 1e6D);
-
 			g.drawString(fmt, 10, 30);
 
+			double dotsLeftAvg = (double) dotsLeftSum / runCounter;
+			
+			fmt = String.format("Dots left avg %5.2f", dotsLeftAvg);
+			g.drawString(fmt, 10, 45);
 		}
 
 		@Override
