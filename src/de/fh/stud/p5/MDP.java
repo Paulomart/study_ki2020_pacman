@@ -38,7 +38,6 @@ public class MDP {
 		}
 
 		DebugGUI.setW(w);
-
 		return w;
 	}
 
@@ -97,6 +96,8 @@ public class MDP {
 			throw new IllegalArgumentException();
 		}
 
+		// If an tile is in a dead end and its not a dot, the score is very low
+		// This makes the agent walk out of the dead end after eating all dots.
 		if (DeadEnd.isEndDeadEnd(deadEnds, p) && tile != PacmanTileType.DOT) {
 			return -99999;
 		}
@@ -112,28 +113,12 @@ public class MDP {
 		}
 
 		WorldField moveTargetType = WorldHelper.getTileType(w, newPos);
-
 		WorldField currentType = WorldHelper.getTileType(w, pos);
 
-//		if (moveTargetType.tileType == PacmanTileType.GHOST || currentType.tileType == PacmanTileType.GHOST) {
-//			return rate(PacmanTileType.GHOST);
-//		}
-//
-//		if (moveTargetType.tileType == PacmanTileType.GHOST_AND_DOT
-//				|| currentType.tileType == PacmanTileType.GHOST_AND_DOT) {
-//			return rate(PacmanTileType.GHOST_AND_DOT);
-//		}
-//
 		if (moveTargetType.tileType == PacmanTileType.WALL || currentType.tileType == PacmanTileType.WALL) {
 			return rate(PacmanTileType.WALL, null);
 		}
 
-//		if (moveTargetType.tileType == PacmanTileType.DOT || currentType.tileType == PacmanTileType.DOT) {
-//			return rate(PacmanTileType.DOT);
-//		}
-
-//		return (moveTargetType.qValue * 0.6F + rate(currentType.tileType) * 0.2F + rate(moveTargetType.tileType) * 0.2F)
-//				* 0.9F; // + rate(moveTargetType.tileType);
 		float rawScore = moveTargetType.qValue * 0.9F + rate(currentType.tileType, pos);
 
 		return rawScore;

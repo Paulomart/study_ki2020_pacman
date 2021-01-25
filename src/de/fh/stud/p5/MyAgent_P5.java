@@ -17,8 +17,14 @@ import de.fh.stud.p1.Position;
 
 public class MyAgent_P5 extends PacmanAgent_2021 {
 
+	class PerGameData {
+		int dotsMax;
+		List<DeadEnd> deadEnds;
+
+	}
+
 	private WorldField[][] policy;
-	private int dotsMax = -1;
+	private PerGameData perGameData = null;
 
 	public MyAgent_P5(String name) {
 		super(name);
@@ -33,27 +39,23 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	@Override
 	public PacmanAction action(PacmanPercept percept, PacmanActionEffect actionEffect) {
-		if (actionEffect == PacmanActionEffect.BUMPED_INTO_WALL) {
-//			throw new IllegalStateException("Bumpled into wall. Out of sync?");
-		}
-
-		if (dotsMax == -1) {
-			dotsMax = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
+		if (perGameData == null) {
+			perGameData = new PerGameData();
+			perGameData.dotsMax = de.fh.stud.p1.WorldHelper.count(percept.getView(), Arrays.asList(PacmanTileType.DOT));
+			perGameData.deadEnds = DeadEnd.getDeadEnds(percept.getView());
+			DebugGUI.setDeadEnds(perGameData.deadEnds);
 		}
 
 		long nsStart = System.nanoTime();
 
-		List<DeadEnd> deadEnds = DeadEnd.getDeadEnds(percept.getView());
-		DebugGUI.setDeadEnds(deadEnds);
-
 		GhostDistance gd = new GhostDistance(percept.getView());
 		Map<Position, Integer> gdMap = new HashMap<Position, Integer>();
-		for (DeadEnd deadEnd : deadEnds) {
+		for (DeadEnd deadEnd : perGameData.deadEnds) {
 			gdMap.put(deadEnd.startPosition, gd.at(deadEnd.startPosition));
 		}
 		DebugGUI.setGhostDistances(gdMap);
 
-		MDP mdp = new MDP(percept, dotsMax, deadEnds, gdMap);
+		MDP mdp = new MDP(percept, perGameData.dotsMax, perGameData.deadEnds, gdMap);
 		policy = mdp.compute();
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));
@@ -67,7 +69,7 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 
 	@Override
 	protected void onGameStart(PacmanStartInfo startInfo) {
-		dotsMax = -1;
+		perGameData = null;
 	}
 
 	@Override
