@@ -20,7 +20,6 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 	class PerGameData {
 		int dotsMax;
 		List<DeadEnd> deadEnds;
-
 	}
 
 	private WorldField[][] policy;
@@ -51,7 +50,8 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		GhostDistance gd = new GhostDistance(percept.getView());
 		Map<Position, Integer> gdMap = new HashMap<Position, Integer>();
 		for (DeadEnd deadEnd : perGameData.deadEnds) {
-			gdMap.put(deadEnd.startPosition, gd.at(deadEnd.startPosition));
+			int maxDepth = deadEnd.path.size() * 2 + 2;
+			gdMap.put(deadEnd.startPosition, gd.at(deadEnd.startPosition, maxDepth));
 		}
 		DebugGUI.setGhostDistances(gdMap);
 

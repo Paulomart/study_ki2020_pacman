@@ -37,7 +37,7 @@ public class GhostDistance {
 		return optMin.orElse(99999);
 	}
 
-	public int at(Position position) {
+	public int at(Position position, int maxDepth) {
 		ToIntFunction<Knoten> cost = (knoten) -> {
 			return knoten.distance;
 		};
@@ -51,7 +51,7 @@ public class GhostDistance {
 			return t == PacmanTileType.GHOST || t == PacmanTileType.GHOST_AND_DOT;
 		};
 
-		Knoten initialKnoten = new Knoten(position, 0);
+		Knoten initialKnoten = new Knoten(position, 0, maxDepth);
 
 		Knoten goalKnoten = new A_STAR<Knoten>(cost, heuristic).closedListSerach(initialKnoten, goal);
 		return goalKnoten != null ? goalKnoten.distance : 9999;
@@ -62,16 +62,17 @@ public class GhostDistance {
 
 		private final Position position;
 		private final int distance;
+		private final int maxDepth;
 
 		@Override
 		public Stream<? extends Node> expand() {
-			if (distance > 15) {
+			if (distance > maxDepth) {
 				return Stream.empty();
 			}
 			return Stream.of(WorldHelper.DIRS).map(a -> position.mutate(a))
 					.filter(x -> de.fh.stud.p1.WorldHelper.isInBounds(w, x))
 					.filter(x -> de.fh.stud.p1.WorldHelper.getTileType(w, x) != PacmanTileType.WALL)
-					.map(x -> new Knoten(x, distance + 1));
+					.map(x -> new Knoten(x, distance + 1, maxDepth));
 		}
 
 		@Override
