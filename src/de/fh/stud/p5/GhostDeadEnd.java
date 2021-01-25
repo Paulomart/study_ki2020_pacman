@@ -1,0 +1,128 @@
+package de.fh.stud.p5;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+import de.fh.pacman.enums.PacmanTileType;
+import de.fh.stud.p1.Position;
+import de.fh.stud.p1.WorldHelper;
+import lombok.experimental.var;
+
+public class GhostDeadEnd {
+	
+	public Position startPosition;
+	public Position endPosition;
+	public Position fieldInFrontOfGhostDeadEnd;
+	public LinkedList<Position> path = new LinkedList<>();
+	
+	private LinkedList<GhostDeadEnd> children = new LinkedList<>();
+	
+	public GhostDeadEnd(GhostDeadEnd g1, GhostDeadEnd g2) {
+		this.children.add(g1);
+		this.children.add(g2);
+	}
+	
+	public GhostDeadEnd(PacmanTileType[][] w, Position ghostPosition, Position startPosition) {
+		this.startPosition = startPosition;
+		this.endPosition = startPosition;
+		
+		ArrayList<Position> neighbours = getNeighbours(w, startPosition);
+		neighbours.remove(ghostPosition);
+		Position oldPosition = this.startPosition;
+		path.add(this.startPosition);
+		
+		while(neighbours.size() < 3) {
+			
+			neighbours.remove(oldPosition);
+			if (neighbours.size() != 1) {
+				throw new IllegalStateException();
+			}
+			oldPosition = this.startPosition;
+			this.startPosition = neighbours.get(0);
+			
+			path.add(this.startPosition);
+			neighbours = getNeighbours(w, this.startPosition);
+		}
+		
+		this.startPosition = this.path.get(this.path.size() - 2);
+		this.fieldInFrontOfGhostDeadEnd = this.path.get(this.path.size() - 1);
+		this.path.removeLast();
+	}
+	
+	public static ArrayList<GhostDeadEnd> getGhostDeadEnds(PacmanTileType[][] w) {
+		
+		ArrayList<GhostDeadEnd> ghostDeadEnds = new ArrayList<>();
+		HashMap<Position, ArrayList<GhostDeadEnd>> singleGhostDeadEnds = new HashMap<>();
+		
+		for(int x = 0; x < w.length; x++) {
+			for(int y = 0; y < w[x].length; y++) {
+				
+				if(!(w[x][y] == PacmanTileType.GHOST || w[x][y] == PacmanTileType.GHOST_AND_DOT)) {
+					continue;
+				}
+				
+				Position p = new Position(x, y);
+				ArrayList<Position> neighbours = getNeighbours(w, p);
+				
+				singleGhostDeadEnds.put(p, new ArrayList<>());
+				
+				for (Position neighbour : neighbours) {
+					singleGhostDeadEnds.get(p).add(new GhostDeadEnd(w, p, neighbour));
+				}
+			}
+		}
+		
+		for (Position ghost : singleGhostDeadEnds.keySet()) {
+			for (GhostDeadEnd ghostDeadEnd : singleGhostDeadEnds.get(ghost)) {
+				HashSet<Position> otherGhosts = new HashSet<>(singleGhostDeadEnds.keySet());
+				otherGhosts.remove(ghost);
+				
+				for (Position otherGhost : otherGhosts) {
+					for (GhostDeadEnd otherGhostDeadEnd : singleGhostDeadEnds.get(otherGhost)) {
+						if (ghostDeadEnd.fieldInFrontOfGhostDeadEnd.equals(otherGhostDeadEnd.fieldInFrontOfGhostDeadEnd)) {
+							ghostDeadEnds.add(new GhostDeadEnd(ghostDeadEnd, otherGhostDeadEnd));
+						}
+					}
+				}
+			}
+			singleGhostDeadEnds.remove(ghost);
+		}
+		
+		return ghostDeadEnds;
+	}
+
+	private static ArrayList<Position> getNeighbours(PacmanTileType[][] w, Position p) {
+		
+		ArrayList<Position> neighbours = new ArrayList<>();
+		Position north = p.north();
+		Position south = p.south();
+		Position east = p.east();
+		Position west = p.west();
+		
+		if (WorldHelper.isInBounds(w, north)) {
+			if(WorldHelper.getTileType(w, north) != PacmanTileType.WALL) {
+				neighbours.add(north);
+			}
+		}
+		if (WorldHelper.isInBounds(w, east)) {
+			if(WorldHelper.getTileType(w, east) != PacmanTileType.WALL) {
+				neighbours.add(east);
+			}
+		}
+		if (WorldHelper.isInBounds(w, west)) {
+			if(WorldHelper.getTileType(w, west) != PacmanTileType.WALL) {
+				neighbours.add(west);
+			}
+		}
+		if (WorldHelper.isInBounds(w, south)) {
+			if(WorldHelper.getTileType(w, south) != PacmanTileType.WALL) {
+				neighbours.add(south);
+			}
+		}
+		
+		return neighbours;
+	}
+}
