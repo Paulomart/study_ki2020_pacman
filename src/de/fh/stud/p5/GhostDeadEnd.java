@@ -1,11 +1,13 @@
 package de.fh.stud.p5;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.fh.kiServer.gridBasedGame.gui.NewLevelView;
 import de.fh.pacman.enums.PacmanTileType;
 import de.fh.stud.p1.Position;
 import de.fh.stud.p1.WorldHelper;
@@ -33,16 +35,28 @@ public class GhostDeadEnd {
 	public GhostDeadEnd(PacmanTileType[][] w, Position ghostPosition, Position startPosition) {
 		this.startPosition = startPosition;
 		this.endPosition = startPosition;
+		this.fieldInFrontOfGhostDeadEnd = startPosition;
 		
 		ArrayList<Position> neighbours = getNeighbours(w, startPosition);
-		neighbours.remove(ghostPosition);
-		Position oldPosition = this.startPosition;
+		Position oldPosition = ghostPosition;
 		path.add(this.startPosition);
+		
+		if (neighbours.size() != 2) {
+			return;
+		}
 		
 		while(neighbours.size() < 3) {
 			
 			neighbours.remove(oldPosition);
+
 			if (neighbours.size() != 1) {
+				if (neighbours.size() == 0) {
+					return;
+				}
+				for (Position position : neighbours) {
+					System.out.println(position);
+				}
+				System.out.println("test");
 				throw new IllegalStateException();
 			}
 			oldPosition = this.startPosition;
@@ -52,6 +66,7 @@ public class GhostDeadEnd {
 			neighbours = getNeighbours(w, this.startPosition);
 		}
 		
+
 		this.startPosition = this.path.get(this.path.size() - 2);
 		this.fieldInFrontOfGhostDeadEnd = this.path.get(this.path.size() - 1);
 		this.path.removeLast();
@@ -79,6 +94,10 @@ public class GhostDeadEnd {
 				}
 			}
 		}
+	
+		LinkedList<Position> usedGhosts = new LinkedList<>();
+		
+		System.out.println(singleGhostDeadEnds.size());
 		
 		for (Position ghost : singleGhostDeadEnds.keySet()) {
 			for (GhostDeadEnd ghostDeadEnd : singleGhostDeadEnds.get(ghost)) {
@@ -86,6 +105,10 @@ public class GhostDeadEnd {
 				otherGhosts.remove(ghost);
 				
 				for (Position otherGhost : otherGhosts) {
+					
+					if (usedGhosts.contains(otherGhost)) {
+						continue;
+					}
 					for (GhostDeadEnd otherGhostDeadEnd : singleGhostDeadEnds.get(otherGhost)) {
 						if (ghostDeadEnd.fieldInFrontOfGhostDeadEnd.equals(otherGhostDeadEnd.fieldInFrontOfGhostDeadEnd)) {
 							ghostDeadEnds.add(new GhostDeadEnd(ghostDeadEnd, otherGhostDeadEnd));
@@ -93,7 +116,7 @@ public class GhostDeadEnd {
 					}
 				}
 			}
-			singleGhostDeadEnds.remove(ghost);
+			
 		}
 		
 		return ghostDeadEnds;
