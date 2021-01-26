@@ -72,6 +72,17 @@ public class GhostDeadEnd {
 		this.path.removeLast();
 	}
 	
+	public static boolean isInGhostDeadEnd(List<GhostDeadEnd> ghostDeadEnds, Position p) {
+		
+		for (GhostDeadEnd ghostDeadEnd : ghostDeadEnds) {
+			if (ghostDeadEnd.path.contains(p)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public static List<GhostDeadEnd> getGhostDeadEnds(PacmanTileType[][] w) {
 		
 		ArrayList<GhostDeadEnd> ghostDeadEnds = new ArrayList<>();
