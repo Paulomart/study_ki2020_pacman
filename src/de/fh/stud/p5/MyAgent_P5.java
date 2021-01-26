@@ -62,10 +62,12 @@ public class MyAgent_P5 extends PacmanAgent_2021 {
 		}
 		DebugGUI.setGhostDistances(gdMap);
 		
-		DebugGUI.setGhostDeadEnds(GhostDeadEnd.getGhostDeadEnds(percept.getView()));
+		List<GhostDeadEnd> ghostDeadEnds = GhostDeadEnd.getGhostDeadEnds(percept.getView());
+		
+		DebugGUI.setGhostDeadEnds(ghostDeadEnds);
 		
 
-		MDP mdp = new MDP(percept, perGameData.dotsMax, perGameData.deadEnds, gdMap);
+		MDP mdp = new MDP(percept, perGameData.dotsMax, perGameData.deadEnds, ghostDeadEnds, gdMap);
 		policy = mdp.compute();
 
 		WorldField f = WorldHelper.getTileType(policy, new Position(percept.getPosX(), percept.getPosY()));

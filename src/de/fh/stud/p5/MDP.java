@@ -17,13 +17,16 @@ public class MDP {
 
 	private final PacmanPercept percept;
 	private final List<DeadEnd> deadEnds;
+	private final List<GhostDeadEnd> ghostDeadEnds;
 	private final Map<Position, Integer> ghostDistances;
 	private final int dotsMax;
 	private final int dotsLeft;
 
-	public MDP(PacmanPercept percept, int dotsMax, List<DeadEnd> deadEnds, Map<Position, Integer> ghostDistances) {
+	public MDP(PacmanPercept percept, int dotsMax, List<DeadEnd> deadEnds, List<GhostDeadEnd> ghostDeadEnds,
+			Map<Position, Integer> ghostDistances) {
 		this.percept = percept;
 		this.deadEnds = deadEnds;
+		this.ghostDeadEnds = ghostDeadEnds;
 		this.ghostDistances = ghostDistances;
 
 		this.dotsMax = dotsMax;
@@ -103,6 +106,12 @@ public class MDP {
 		if (DeadEnd.isEndDeadEnd(deadEnds, p) && tile != PacmanTileType.DOT) {
 			return -99999;
 		}
+
+		if (GhostDeadEnd.isInGhostDeadEnd(ghostDeadEnds, p)) {
+			return -99999;
+		}
+
+			
 		return positionValue;
 
 	}
@@ -195,7 +204,8 @@ public class MDP {
 							continue;
 						}
 
-						// only works because the if above ensures that there are dots inside the dead end
+						// only works because the if above ensures that there are dots inside the dead
+						// end
 						boolean onlyTheDotsInTheDeadEnd = isDeadEnd.path.size() >= dotsLeft;
 						boolean ghostIsTooClose = ghostsDistance < deadEndLength * 2 + 1;
 
