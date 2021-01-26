@@ -411,6 +411,13 @@ public class DebugGUI {
 			}
 
 			// draw ghost dead ends
+//			drawGhostDeadEnds(g, size, linesX, linesY);
+
+			g.setColor(Color.white);
+			drawStats(g);
+		}
+
+		private void drawGhostDeadEnds(Graphics g, Dimension size, int[] linesX, int[] linesY) {
 			for (GhostDeadEnd deadEnd : ghostDeadEnds) {
 
 				Graphics2D g2 = (Graphics2D) g;
@@ -436,9 +443,6 @@ public class DebugGUI {
 
 				g2.setStroke(oldStroke);
 			}
-
-			g.setColor(Color.white);
-			drawStats(g);
 		}
 
 	}
